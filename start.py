@@ -9,8 +9,8 @@ from selenium import webdriver
 import pickle
 import liker
 from liker import *
-from support import *
-from priceWebScraper import priceWebScraper
+from Support import *
+from PriceWebScraper import priceWebScraper
 
 class start():
     """
@@ -48,11 +48,11 @@ class start():
             _tmpProfile = webdriver.FirefoxProfile(_profileDirectory +
                                                     _config.get('profiles', _usr))
 
-            _driver = webdriver.Firefox(firefox_profile=_tmpProfile,
-                                        capabilities=support.proxy(_config.get('proxy', _usr)))
+            _driver = webdriver.Firefox(firefox_profile=_tmpProfile)
+                #,capabilities=support.proxy(_config.get('proxy', _usr)))
 
             for _mthd in _methods:
-                _page = _mthd.replace('Liker','')
+                _page = _mthd.replace('Liker', '')
                 print(_mthd)
                 support.loader(_driver, _usr, _page, _cookieDirectory)
                 #the getattr functions navigate through the folder structure
@@ -68,7 +68,7 @@ class start():
         #quit all drivers
         if (_scraperUsed == "True"):
             priceWebScraper.scrapePrices(_driverArray)
-            for _driver in _driverArray:
-                _driver.quit()
+            #for _driver in _driverArray:
+              #_driver.quit()
 
     start()

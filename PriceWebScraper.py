@@ -12,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 import pandas as pd
-from support import *
+from Support import *
 
 class priceWebScraper():
 
@@ -37,10 +37,14 @@ class priceWebScraper():
             'tchibo.de': ('span', 'itemprop', 'price'),
             'conrad.de': ('div', 'itemprop', 'price'),                              #has bot protection
             'amazon.de': ('span', 'id', 'priceblock_ourprice', 'priceblock_dealprice'),
-            'otto.de': ('span', 'id', 'reducedPriceAmount', 'normalPriceAmount')}
+            'otto.de': ('span', 'id', 'reducedPriceAmount', 'normalPriceAmount'),
+            '127.0.0.1:5000': ('p', 'class', 'card-price')}
         return switch.get(website)
 
+    @staticmethod
     def createFolder(directory, folder):
+        print(f"dir = {directory}")
+        print(f"fold {folder}")
 
         """
         Creates a folder in a given directory
@@ -54,7 +58,7 @@ class priceWebScraper():
             if not os.path.exists(folder):
                 os.makedirs(folder)
         except OSError:
-            print ('Error: Creating directory. ' +  folder)
+            print ('Error: Creating directory. ' + folder)
 
     def scrapePrices(driverArray):
 
@@ -97,12 +101,16 @@ class priceWebScraper():
                     #this datalist will contain the scraped prices of one user for each product as an array.
                     _datalist = []
                     #each website URL will be called
-                    _url = "https://www." + _scrape
+                    _url = "http://" + _scrape
 
                     support.loader(_driver, _user[driverArray.index(_driver)], _scrape, _cookieDirectory)
                     time.sleep(2)
 
-                    _products = _config.get('scrape', _scrape).split()
+                    print(f"_scrape: {_scrape}")
+                    mod = _scrape.split(":")[0]
+                    print(mod)
+                    _products = _config.get('scrape', mod).split()
+                    print(f"products: {_products}")
 
                     for _prod in _products:
                         try:
@@ -126,9 +134,12 @@ class priceWebScraper():
                         #will loop at the end to overwrite previous false results
                         for _name in _scrapeLocation[2:]:
                             try:
-                                _priceBox = _soup.find(_location, attrs={_type:_name})
+                                _priceBox = _soup.find(_location, attrs={_type: _name})
+                                #print(f"_priceBox: {_priceBox}")
                                 #find the price and cut it by iterating to its start
                                 _price = _priceBox.text
+                                print(f"price: {_price}")
+                                """
                                 _price = "#" + _price #indicator for price starting
                                 _middle = _price.find(",")
                                 _loop = True
@@ -142,20 +153,23 @@ class priceWebScraper():
                                 _price = _price.replace("-","00")
                                 _price = _price.replace(".","")
                                 _priceFound = _priceFound + 1
+                                """
                             except Exception:
                                 pass   #do nothing
 
-                        if (_price != "00,00"):
-                            print("Price found!")
-                        else: print("No Price Found, default is 00,00")
+                        if _price != "00,00":
+                            print(f"Price found! {_price}")
+                        else:
+                            print("No Price Found, default is 00,00")
 
                         _datalist.append(_price)
-
+                    print(f"datalist: {_datalist}")
                     _datetime = str(datetime.datetime.now())
                     _keys.append(driverArray.index(_driver))
-                    _datalist.insert(0,_scrape)
-                    _datalist.insert(0,_datetime)
+                    _datalist.insert(0, _scrape)
+                    _datalist.insert(0, _datetime)
                     _metaDatalist.append(_datalist)
+                    print(f"metaDatalist: {_metaDatalist}")
 
                 support.dumper(_driver, _user[driverArray.index(_driver)], _scrape, _cookieDirectory)
                 _datetime = _datetime[:19]
@@ -166,9 +180,14 @@ class priceWebScraper():
                 _df = pd.DataFrame(_metaDatalist, columns=_products)
                 _df = _df.rename(index=dict(zip(_keys, _user)))
                 _df = _df.T
-                #priceWebScraper.createFolder(_scrapeDirectory, _runIdentifier)
-                #os.chdir(_scrapeDirectory + "/" + _runIdentifier)
-                #_df.to_csv((_datetime + " " +_scrape + '.csv'), sep='\t', encoding='utf-8')
+                priceWebScraper.createFolder(_scrapeDirectory, _runIdentifier)
+                time.sleep(5)
+                print(f"Working Directory: {os.getcwd()}")
+                os.chdir(_runIdentifier)
+                _df.to_csv((_datetime + " " +_scrape + " 1 " + '.csv'), sep='\t', encoding='utf-8')
+                with open('asText', 'a') as f:
+                    dfAsString = _df.to_string() #header=False, index=False
+                    f.write(dfAsString)
                 print(_df)
                 print("Dataframe for " + _scrape + " generated")
             if (_ < (int(_scrapeRepeats)-1)):

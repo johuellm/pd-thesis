@@ -5,10 +5,12 @@ import pickle
 import time
 from selenium import webdriver
 from configparser import SafeConfigParser
-from support import *
+from Support import *
+
 
 class CookieDumper():
 
+    @staticmethod
     def cookieDumper(stringIDs, pages, delay):
         """
         The cookieDumper helps dumping session cookies for each profile. The persistent cookies are saved in the Firefox profiles.
@@ -31,10 +33,16 @@ class CookieDumper():
             _tmpProfile = webdriver.FirefoxProfile(_profileDirectory + _config.get('profiles', _usr))
             _tmpDriver = webdriver.Firefox(firefox_profile=_tmpProfile, capabilities=support.proxy(_config.get('proxy', _usr)))
             for _p in pages:
-                _tmpDriver.get('https://' + _p)
+                _tmpDriver.get("http://" + _p)
+                time.sleep(delay)
+                _tmpDriver.get("http://" + _p)
                 time.sleep(delay)
                 _p = _p.title()
-                pickle.dump(_tmpDriver.get_cookies() , open((_cookieDirectory +_usr+ _p+ "Cookies.pkl"),"wb"))
+                cookies = _tmpDriver.get_cookies()
+                print(f"cookies: {cookies}")
+                print(f'path: {_cookieDirectory +_usr + "Local" + "Cookies.pkl"}')#_p.replace("/", "")
+                with open((_cookieDirectory + _usr + "Local" + "Cookies.pkl"), "wb") as out:
+                    pickle.dump(_tmpDriver.get_cookies(), out)
                 print('cookies dumped')
             _tmpDriver.quit()
 
@@ -45,4 +53,4 @@ Clicking on Browser options like "Save this password" will save the log-in cooki
 Which allows you to log-in without loading the session cookies and you can choose a very short delay.
 """
 
-CookieDumper.cookieDumper(["Hannes", "Daniel", "Linda", "Hildegard"], ["cyberport.de", "esprit.de", "zalando.de", "mediamarkt.de", "amazon.de", "tchibo.de", "otto.de"], 1)
+CookieDumper.cookieDumper(["Hannes", "Daniel", "Linda", "Hildegard", "Kai"], ["127.0.0.1:5000/ecommerce"], 5)

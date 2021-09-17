@@ -1,3 +1,6 @@
+This code is adapted from [fmurr01](https://github.com/fmurr01) to work combined with the [personalization-testsuite](https://github.com/johuellm/personalization-testsuite) in order to evaluate the capabilities of the [pd-thesis](https://github.com/fmurr01/main) program!
+
+
 # Installation guide
 
 Be aware that the Firefox Profiles are 700 Mb+, so unless you want to reuse my

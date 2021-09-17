@@ -44,7 +44,7 @@ class support():
                     }
         return _desiredCapability
 
-
+    @staticmethod
     def dumper(driver, stringId, page, directory):
         """
         Dumps the session cookies in a file named after
@@ -59,10 +59,10 @@ class support():
         """
 
         _string = stringId + page + "Cookies.pkl"
-        pickle.dump(driver.get_cookies(), open((directory + _string),"wb"))
+        pickle.dump(driver.get_cookies(), open((directory + _string), "wb"))
         print('cookies dumped')
 
-
+    @staticmethod
     def loader(driver, stringId, page, directory):
         """
         Loads the url of the called method and adds/loads the cookies
@@ -76,25 +76,30 @@ class support():
         Raises:
             TimeoutException if the site did not load in time
         """
-
+        print(page)
         _tld = '.com/'
         if page == 'Bild':
             _tld = '.de/'
         if "." in page:
             _tld = ""
+        if page == '127.0.0.1:5000':
+            _tld = ''
         page = page.title()
         #driver.maximize_window()
+        print(page.title())
+        url = 'http://' + page if page == '127.0.0.1:5000' else 'https://' + page + _tld
+        print(f"url: {url}")
         try:
-            driver.get('https://' + page + _tld)
-            print ("Page is ready!")
-            _cookies = pickle.load(open((directory +stringId+ page+ "Cookies.pkl"),"rb"))
+            driver.get(url)
+            print("Page is ready!")
+            _cookies = pickle.load(open((directory +stringId+ "Local"+ "Cookies.pkl"),"rb"))
             for _cookie in _cookies:
                 driver.add_cookie(_cookie)
         except TimeoutException:
-            print ("Loading took too much time!")
+            print("Loading took too much time!")
 
         try:
-            driver.get('https://' + page + _tld)
-            print ("Page is ready!")
+            driver.get(url)
+            print("Page is ready!")
         except TimeoutException:
-            print ("Loading took too much time!")
+            print("Loading took too much time!")
